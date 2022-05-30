@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title></title>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <v-container fluid class="pa-0">
+                    <v-row class="text-center">
+                        <v-col class="my-12" cols="12">
+                            <h1 class="display-2 font-weight-bold my-6 lime--text text--lighten-5">DBManager</h1>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="2"></v-col>
+                        <v-col cols="8" sm="8" justify="center">
+                            <v-card class="mx-auto">
+                                <v-container>
+
+                                    <v-select :items="mode_names()" v-model="selected" label="Mode"></v-select>
+
+                                    <v-container v-for="mode in modes" v-if="selected == mode.name" :key="mode.name">
+
+                                        <v-text-field v-for="param in mode.params" v-model="mode.data[param]"
+                                            :key="param" :label="param">
+                                        </v-text-field>
+
+                                        <v-card-actions>
+                                            <v-btn color="deep-purple lighten-2" text @click="send(mode)">
+                                                Send
+                                            </v-btn>
+                                        </v-card-actions>
+
+                                    </v-container>
+
+                                </v-container>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="2"></v-col>
+                    </v-row>
+
+                    <v-row v-if="show_str">
+                        <v-col cols="2"></v-col>
+                        <v-col cols="8" sm="8" justify="center">
+                            <v-card class="mx-auto">
+                                <v-card-text class="pb-0">
+
+                                    <p class="subtitle-1">
+                                        <span style="white-space: pre-wrap;">{{result_str}}</span>
+                                    </p>
+                                </v-card-text>
+                                <br>
+                            </v-card>
+                        </v-col>
+                        <v-col cols="2"></v-col>
+                    </v-row>
+
+                    <v-row v-if="show_table">
+                        <v-col cols="2"></v-col>
+                        <v-col cols="8" sm="8" justify="center">
+                            <v-card class="mx-auto">
+                                <v-container>
+                                    <v-row>
+                                        <v-col justify="center">
+                                            <v-data-table :headers="table_headers" :items="table_items"
+                                                :items-per-page="5" class="elevation-1"></v-data-table>
+                                        </v-col>
+                                    </v-row>
+                                    <br>
+                                </v-container>
+
+                            </v-card>
+                        </v-col>
+                        <v-col cols="2"></v-col>
+                    </v-row>
+                    <br>
+                    <br>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+    <style>
+        #app {
+            background: url("https://nyat-static.globalslb.net/natfrp/index/bg1.jpg") no-repeat center fixed;
+            background-size: cover;
+        }
+    </style>
+    <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+
+
+    <script>
+        new Vue({
+            el: '#app',
+            vuetify: new Vuetify({
+                theme: { dark: true },//dark theme
+            }),
+
+            data: () => ({
+                modes: [
+                    {
+                        name: "add_center",
+                        api: "/add_center",
+                        params: [
+                            "name",
+                        ]
+                    },
+                    {
+                        name: "add_enterprise",
+                        api: "/add_enterprise",
+                        params: [
+                            "name",
+                            "country",
+                            "city",
+                            "supply_center",
+                            "industry",
+                        ]
+                    },
+                    {
+                        name: "add_models",
+                        api: "/add_models",
+                        params: [
+                            "number",
+                            "model",
+                            "name",
+                            "unit_price"
+                        ]
+                    },
+                    {
+                        name: "add_staffs",
+                        api: "/add_staffs",
+                        params: [
+                            "name",
+                            "age",
+                            "gender",
+                            "number",
+                            "supply_center",
+                            "mobile_phone",
+                            "type"
+                        ]
+                    },
+                    {
+                        name: "delete_center",
+                        api: "/delete_center",
+                        params: [
+                            "name"
+                        ]
+                    },
+                    {
+                        name: "delete_enterprise",
+                        api: "/delete_enterprise",
+                        params: [
+                            "name"
+                        ]
+                    },
+                    {
+                        name: "delete_models",
+                        api: "/delete_models",
+                        params: [
+                            "number"
+                        ]
+                    },
+                    {
+                        name: "delete_staff",
+                        api: "/delete_staff",
+                        params: [
+                            "number"
+                        ]
+                    },
+                    {
+                        name: "alter_enterprise_info",
+                        api: "/alter_enterprise_info",
+                        params: [
+                            "name",
+                            "country",
+                            "city",
+                            "industry"
+                        ]
+                    },
+                    {
+                        name: "alter_models_info",
+                        api: "/alter_models_info",
+                        params: [
+                            "number",
+                            "model",
+                            "name",
+                            "unit_price"
+                        ]
+                    },
+                    {
+                        name: "alter_staff_info",
+                        api: "/alter_staff_info",
+                        params: [
+                            "name",
+                            "age",
+                            "gender",
+                            "number",
+                            "supply_center",
+                            "mobile_phone",
+                            "type"
+                        ]
+                    },
+                    {
+                        name: "select_center_info",
+                        api: "/select_center_info",
+                        params: [
+                            "name"
+                        ]
+                    },
+                    {
+                        name: "select_enterprise_info",
+                        api: "/select_enterprise_info",
+                        params: [
+                            "name",
+                            "country",
+                            "city",
+                            "supply_center",
+                            "industry"
+                        ]
+                    },
+                    {
+                        name: "select_models_info",
+                        api: "/select_models_info",
+                        params: [
+                            "number",
+                            "model",
+                            "name",
+                            "unit_price"
+                        ]
+                    },
+                    {
+                        name: "select_staff_info",
+                        api: "/select_staff_info",
+                        params: [
+                            "name",
+                            "age",
+                            "gender",
+                            "number",
+                            "supply_center",
+                            "mobile_number",
+                            "type"
+                        ]
+                    },
+                    {
+                        name: "stockIn",
+                        api: "/stockIn",
+                        params: [
+                            "supply_center",
+                            "product_model",
+                            "supply_staff",
+                            "date",
+                            "purchase_prise",
+                            "quantity"
+                        ]
+                    },
+                    {
+                        name: "placeOrder",
+                        api: "/placeOrder",
+                        params: [
+                            "contract_num",
+                            "enterprise",
+                            "product_model",
+                            "quantity",
+                            "contract_manager",
+                            "contract_date",
+                            "estimated_delivery_date",
+                            "lodgement_date",
+                            "salesman_num",
+                            "contract_type"
+                        ]
+                    },
+                    {
+                        name: "updateOrder",
+                        api: "/updateOrder",
+                        params: [
+                            "contract",
+                            "product_model",
+                            "salesman",
+                            "quantity",
+                            "estimate_delivery_date",
+                            "lodgement_date"
+                        ]
+                    },
+                    {
+                        name: "deleteOrder",
+                        api: "/deleteOrder",
+                        params: [
+                            "contract",
+                            "salesman",
+                            "seq"
+                        ]
+                    },
+                    {
+                        name: "getAllStaffCount",
+                        api: "/getAllStaffCount",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "getContractCount",
+                        api: "/getContractCount",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "getOrderCount",
+                        api: "/getOrderCount",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "getNeverSoldProductCount",
+                        api: "/getNeverSoldProductCount",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "getFavoriteProductModel",
+                        api: "/getFavoriteProductModel",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "getProductByNumber",
+                        api: "/getProductByNumber",
+                        params: [
+                            'number'
+                        ]
+                    },
+                    {
+                        name: "getAvgStockByCenter",
+                        api: "/getAvgStockByCenter",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "getContractInfo",
+                        api: "/getContractInfo",
+                        params: [
+                            "contract_number",
+                            "enterprise",
+                            "contract_manager"
+                        ]
+                    },
+                    {
+                        name: "test_input",
+                        api: "/test_input",
+                        params: [
+
+                        ]
+                    },
+                    {
+                        name: "test_output",
+                        api: "/test_output",
+                        params: [
+
+                        ]
+                    },
+                ],
+                test: false,
+                selected: null,
+                show_str: false,
+                show_table: false,
+                result_str: null,
+                table_headers: null,
+                table_items: null,
+                test_response: {
+                    show_str: true,
+                    show_table: true,
+                    result_str: "This is a test string",
+                    result_table: {
+                        col_names: [
+                            "First",
+                            "Second",
+                        ],
+                        rows: [
+                            [
+                                "row 1 item 1",
+                                "row 1 item 2",
+                            ],
+                            [
+                                "row 2 item 1",
+                                "row 2 item 2",
+                            ],
+                        ]
+                    }
+                },
+                test_response_str: '{"show_str": true, "show_table": true, "result_str": "result_str_test", "result_table": {"col_names": ["col_name0", "col_name1", "col_name2", "col_name3", "col_name4", "col_name5", "col_name6", "col_name7", "col_name8", "col_name9"], "rows": [["row_10", "row_11", "row_12", "row_13", "row_14", "row_15", "row_16", "row_17", "row_18", "row_19"], ["row_20", "row_21", "row_22", "row_23", "row_24", "row_25", "row_26", "row_27", "row_28", "row_29"]]}}'
+            }),
+
+            mounted() {
+                for (var idx in this.modes) {
+                    var mode = this.modes[idx]
+                    mode.data = {}
+                    for (var param_idx in mode.params) {
+                        param=mode.params[param_idx]
+                        mode.data[param] = null
+                    }
+                }
+            },
+            methods: {
+                mode_names() {
+                    const that = this
+                    return Array.apply(null, Array(this.modes.length)).map(function (x, i) { return that.modes[i].name; })
+                },
+                send(mode) {
+                    var that = this
+                    var res, status
+
+                    if (this.test) {
+                        res = JSON.parse(this.test_response_str)
+                    }
+                    else {
+                        console.log(mode.data)
+                        $.get(mode.api, mode.data).then((data, status) => {
+                            console.log("data:")
+                            console.log(data)
+                            res = JSON.parse(data)
+
+                            that.show_str = res.show_str
+                            that.show_table = res.show_table
+                            if (that.show_str) {
+                                that.result_str = res.result_str
+                            }
+                            if (that.show_table) {
+                                var tab = res.result_table
+                                that.table_headers = []
+                                for (idx in tab.col_names) {
+                                    that.table_headers.push(
+                                        {
+                                            text: tab.col_names[idx],
+                                            sortable: false,
+                                            value: ""+idx
+                                        }
+                                    )
+                                }
+
+                                that.table_items = []
+                                for (row_idx in tab.rows) {
+                                    that.table_items.push({})
+                                    var row = tab.rows[row_idx]
+                                    for (var i in row) {
+                                        that.table_items[row_idx][""+i] = row[i]
+                                    }
+                                }
+                            }
+
+
+                        })
+                    }
+
+
+                },
+            },
+        })
+    </script>
+</body>
+</html>
